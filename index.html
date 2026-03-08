@@ -18,23 +18,10 @@
       cursor: none;
     }
 
-    /* Custom cursor */
-    .cursor {
-      position: fixed;
-      width: 12px; height: 12px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.9);
-      pointer-events: none;
-      z-index: 9999;
-      transform: translate(-50%, -50%);
-      transition: width 0.2s ease, height 0.2s ease;
-      mix-blend-mode: difference;
-    }
-    .cursor.hovering {
-      width: 40px; height: 40px;
-      background: rgba(255,255,255,0.3);
-      border: 1px solid rgba(255,255,255,0.8);
-    }
+    /* Custom cursor — caché, remplacé par le spotlight */
+    .cursor { display: none; }
+
+
 
     /* Scene */
     .scene {
@@ -44,7 +31,6 @@
       overflow: hidden;
     }
 
-    /* La vidéo remplace l'image — elle EST le background */
     #bgVideo {
       position: absolute;
       inset: 0;
@@ -65,13 +51,24 @@
       z-index: 5;
     }
 
+    /* ── VOILE FUMÉ avec trou de lampe ── */
+    .veil {
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      pointer-events: none;
+      z-index: 7;
+      /* Le mask sera mis à jour via JS */
+      -webkit-mask-image: radial-gradient(circle 120px at 50% 50%, transparent 0%, transparent 40%, black 80%);
+      mask-image: radial-gradient(circle 120px at 50% 50%, transparent 0%, transparent 40%, black 80%);
+    }
+
     /* Title */
     .site-title {
       position: absolute;
       top: 32px; left: 50%;
       transform: translateX(-50%);
       text-align: center;
-      z-index: 10;
+      z-index: 40;
       pointer-events: none;
     }
     .site-title h1 {
@@ -102,7 +99,7 @@
       color: rgba(255,255,255,0.3);
       text-transform: uppercase;
       font-family: 'Cinzel', serif;
-      z-index: 10;
+      z-index: 40;
       pointer-events: none;
       animation: pulse 3s ease-in-out infinite;
     }
@@ -160,29 +157,20 @@
       100%{ transform: scale(1.6); opacity: 0;   }
     }
 
-    /* ── Positions des hotspots ──
-       Ligne 1 : 6 portraits adultes
-       Ligne 2 : portraits enfants
-       Ajustez ces % pour coller à votre vidéo montée
-    */
-
     /* LIGNE 1 */
     #face-L1-1 { left: 1.5%;  top: 4%; width: 13%; height: 30%; }
     #face-L1-2 { left: 15.5%; top: 4%; width: 13%; height: 30%; }
     #face-L1-3 { left: 29.5%; top: 4%; width: 13%; height: 30%; }
     #face-L1-4 { left: 43.5%; top: 4%; width: 13%; height: 30%; }
     #face-L1-5 { left: 57.5%; top: 4%; width: 13%; height: 30%; }
-    /* ★ LA PAYSANNE — Ligne 1, Portrait 6 — timecode 30s→42s */
     #face-L1-6 { left: 65.3%; top: 3.6%; width: 13%; height: 30%; }
 
     /* LIGNE 2 */
     #face-L2-1 { left: 8%;    top: 34%; width: 13%; height: 30%; }
-    /* ★ LA FILLETTE AUX COUETTES — Ligne 2, Portrait 2 (3e case) — timecode 10s→16s */
-    #face-L2-3 { left: 33%; top: 34%; width: 13%; height: 30%; }
+    #face-L2-3 { left: 22%; top: 34%; width: 13%; height: 30%; }
     #face-L2-4 { left: 43.5%; top: 34%; width: 13%; height: 30%; }
     #face-L2-5 { left: 57.5%; top: 34%; width: 13%; height: 30%; }
-    /* ★ LE GARÇON — Ligne 2, Portrait 5 (6e case) — timecode 50s→62s */
-    #face-L2-6 { left: 65%; top: 34%; width: 13%; height: 30%; }
+    #face-L2-6 { left: 33%; top: 34%; width: 13%; height: 30%; }
 
     /* LIGNE 3 */
     #face-L3-1 { left: 1.5%;  top: 65%; width: 13%; height: 30%; }
@@ -196,7 +184,7 @@
     .grain {
       position: fixed; inset: 0;
       pointer-events: none;
-      z-index: 5;
+      z-index: 8;
       opacity: 0.03;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
       background-size: 200px 200px;
@@ -213,61 +201,55 @@
 </head>
 <body>
 
-<div class="cursor" id="cursor"></div>
+<!-- Voile fumé avec trou de lampe -->
+<div class="veil"></div>
+
 <div class="grain"></div>
 
 <div class="scene">
 
-  <!-- LA VIDÉO EST LE BACKGROUND — remplacez "galerie.mp4" par votre nom de fichier -->
   <video id="bgVideo" preload="auto" playsinline>
-    <source src="galery_bg.mp4" type="video/mp4">
+    <source src="Soliman.mp4" type="video/mp4">
   </video>
 
-  <div class="site-title">
-    <h1>Mémoires de Plâtre</h1>
-    <p>Portraits parlants — XIXe siècle</p>
-  </div>
-
-  <div class="hint">Cliquez sur un visage pour l'entendre</div>
-
-
-  <!-- ★ LA PAYSANNE -->
-  <div class="hotspot" id="face-L1-6"
-       data-start="30" data-end="42"
-       data-name="La Paysanne">
-    <span class="label">La Paysanne</span>
-  </div>
-
-
-  <!-- ★ LA FILLETTE AUX COUETTES -->
+  <!-- ★ CALEB -->
   <div class="hotspot" id="face-L2-3"
-       data-start="10" data-end="16"
-       data-name="La Fillette">
-    <span class="label">La Fillette</span>
+       data-start="3" data-end="20"
+       data-name="Caleb">
+    <span class="label">Caleb</span>
   </div>
 
-
-  <!-- ★ LE GARÇON -->
+  <!-- ★ LA FILLETTE -->
   <div class="hotspot" id="face-L2-6"
-       data-start="50" data-end="62"
-       data-name="Le Garçon">
-    <span class="label">Le Garçon</span>
+       data-start="20" data-end="36"
+       data-name="La fillette">
+    <span class="label">La fillette</span>
   </div>
-
 
 </div>
 
+<!-- Titre au-dessus de tout -->
+<div class="site-title">
+  <h1>Mémoires de Plâtre</h1>
+  <p>Portraits parlants — XIXe siècle</p>
+</div>
+
+<div class="hint">Cliquez sur un visage pour l'entendre</div>
+
 <script>
-  // ── Cursor ──
-  const cursor = document.getElementById('cursor');
+  // ── Masque lampe torche sur le voile ──
+  const veil = document.querySelector('.veil');
+
   document.addEventListener('mousemove', e => {
-    cursor.style.left = e.clientX + 'px';
-    cursor.style.top  = e.clientY + 'px';
+    const x = (e.clientX / window.innerWidth  * 100).toFixed(2) + '%';
+    const y = (e.clientY / window.innerHeight * 100).toFixed(2) + '%';
+    const mask = `radial-gradient(circle 130px at ${x} ${y}, transparent 0%, transparent 45%, black 85%)`;
+    veil.style.webkitMaskImage = mask;
+    veil.style.maskImage = mask;
   });
 
   const video = document.getElementById('bgVideo');
 
-  // La vidéo commence en pause sur la première frame
   video.addEventListener('loadedmetadata', () => {
     video.currentTime = 0;
     video.pause();
@@ -277,7 +259,6 @@
   let activeEnd = null;
   let returning = false;
 
-  // UN SEUL écouteur timeupdate pour toute la vidéo
   video.addEventListener('timeupdate', () => {
     if (activeEnd !== null && !returning && video.currentTime >= activeEnd) {
       returning = true;
@@ -295,8 +276,8 @@
     const end   = parseFloat(hotspot.dataset.end);
     const hasVideo = !isNaN(start) && !isNaN(end);
 
-    hotspot.addEventListener('mouseenter', () => cursor.classList.add('hovering'));
-    hotspot.addEventListener('mouseleave', () => cursor.classList.remove('hovering'));
+    hotspot.addEventListener('mouseenter', () => {});
+    hotspot.addEventListener('mouseleave', () => {});
 
     if (!hasVideo) return;
 

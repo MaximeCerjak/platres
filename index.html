@@ -91,17 +91,16 @@
 
     /* Hint */
     .hint {
-      position: absolute;
+      position: fixed;
       bottom: 28px; left: 50%;
       transform: translateX(-50%);
       font-size: 11px;
       letter-spacing: 0.25em;
-      color: rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.6);
       text-transform: uppercase;
       font-family: 'Cinzel', serif;
       z-index: 40;
       pointer-events: none;
-      animation: pulse 3s ease-in-out infinite;
     }
     @keyframes pulse {
       0%, 100% { opacity: 0.3; }
@@ -243,7 +242,7 @@
   document.addEventListener('mousemove', e => {
     const x = (e.clientX / window.innerWidth  * 100).toFixed(2) + '%';
     const y = (e.clientY / window.innerHeight * 100).toFixed(2) + '%';
-    const mask = `radial-gradient(circle 130px at ${x} ${y}, transparent 0%, transparent 45%, black 85%)`;
+    const mask = `radial-gradient(circle 200px at ${x} ${y}, transparent 0%, transparent 45%, black 85%)`;
     veil.style.webkitMaskImage = mask;
     veil.style.maskImage = mask;
   });

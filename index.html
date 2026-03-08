@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mémoires de Plâtre</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Cinzel:wght@400;600&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100vw; height: 100vh;
+      max-width: 100%;
+      overflow: hidden;
+      background: #0a0a0a;
+      font-family: 'Cormorant Garamond', serif;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      position: fixed;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.9);
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s ease, height 0.2s ease;
+      mix-blend-mode: difference;
+    }
+    .cursor.hovering {
+      width: 40px; height: 40px;
+      background: rgba(255,255,255,0.3);
+      border: 1px solid rgba(255,255,255,0.8);
+    }
+
+    /* Scene */
+    .scene {
+      position: fixed;
+      inset: 0;
+      width: 100vw; height: 100vh;
+      overflow: hidden;
+    }
+
+    /* La vidéo remplace l'image — elle EST le background */
+    #bgVideo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center center;
+      padding: 2vh 2vw;
+      filter: brightness(0.88) contrast(1.04);
+    }
+
+    /* Vignette */
+    .scene::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 100%);
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    /* Title */
+    .site-title {
+      position: absolute;
+      top: 32px; left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .site-title h1 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(14px, 2vw, 22px);
+      font-weight: 400;
+      letter-spacing: 0.35em;
+      color: rgba(255,255,255,0.75);
+      text-transform: uppercase;
+    }
+    .site-title p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(11px, 1.2vw, 14px);
+      font-weight: 300;
+      font-style: italic;
+      color: rgba(255,255,255,0.4);
+      margin-top: 4px;
+      letter-spacing: 0.15em;
+    }
+
+    /* Hint */
+    .hint {
+      position: absolute;
+      bottom: 28px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      letter-spacing: 0.25em;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase;
+      font-family: 'Cinzel', serif;
+      z-index: 10;
+      pointer-events: none;
+      animation: pulse 3s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.7; }
+    }
+
+    /* Hotspots */
+    .hotspot {
+      position: absolute;
+      border-radius: 50%;
+      cursor: none;
+      z-index: 20;
+    }
+    .hotspot::before {
+      content: '';
+      position: absolute; inset: -4px;
+      border-radius: 50%;
+      border: 1.5px solid transparent;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hotspot:hover::before {
+      border-color: rgba(255, 240, 200, 0.6);
+      box-shadow: 0 0 20px rgba(255, 240, 200, 0.15), inset 0 0 20px rgba(255,240,200,0.05);
+    }
+    .hotspot .label {
+      position: absolute;
+      bottom: -28px; left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 12px;
+      color: rgba(255,240,200,0.85);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      letter-spacing: 0.05em;
+    }
+    .hotspot:hover .label { opacity: 1; }
+
+    .hotspot::after {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: 50%;
+      border: 1px solid rgba(255,240,200,0.2);
+      opacity: 0;
+    }
+    .hotspot:hover::after {
+      animation: ripple 1.5s ease-out infinite;
+    }
+    @keyframes ripple {
+      0%  { transform: scale(1);   opacity: 0.5; }
+      100%{ transform: scale(1.6); opacity: 0;   }
+    }
+
+    /* ── Positions des hotspots ──
+       Ligne 1 : 6 portraits adultes
+       Ligne 2 : portraits enfants
+       Ajustez ces % pour coller à votre vidéo montée
+    */
+
+    /* LIGNE 1 */
+    #face-L1-1 { left: 1.5%;  top: 4%; width: 13%; height: 30%; }
+    #face-L1-2 { left: 15.5%; top: 4%; width: 13%; height: 30%; }
+    #face-L1-3 { left: 29.5%; top: 4%; width: 13%; height: 30%; }
+    #face-L1-4 { left: 43.5%; top: 4%; width: 13%; height: 30%; }
+    #face-L1-5 { left: 57.5%; top: 4%; width: 13%; height: 30%; }
+    /* ★ LA PAYSANNE — Ligne 1, Portrait 6 — timecode 30s→42s */
+    #face-L1-6 { left: 65.3%; top: 3.6%; width: 13%; height: 30%; }
+
+    /* LIGNE 2 */
+    #face-L2-1 { left: 8%;    top: 34%; width: 13%; height: 30%; }
+    /* ★ LA FILLETTE AUX COUETTES — Ligne 2, Portrait 2 (3e case) — timecode 10s→16s */
+    #face-L2-3 { left: 33%; top: 34%; width: 13%; height: 30%; }
+    #face-L2-4 { left: 43.5%; top: 34%; width: 13%; height: 30%; }
+    #face-L2-5 { left: 57.5%; top: 34%; width: 13%; height: 30%; }
+    /* ★ LE GARÇON — Ligne 2, Portrait 5 (6e case) — timecode 50s→62s */
+    #face-L2-6 { left: 65%; top: 34%; width: 13%; height: 30%; }
+
+    /* LIGNE 3 */
+    #face-L3-1 { left: 1.5%;  top: 65%; width: 13%; height: 30%; }
+    #face-L3-2 { left: 15.5%; top: 65%; width: 13%; height: 30%; }
+    #face-L3-3 { left: 43.5%; top: 65%; width: 13%; height: 30%; }
+    #face-L3-4 { left: 57.5%; top: 65%; width: 13%; height: 30%; }
+    #face-L3-5 { left: 71.5%; top: 65%; width: 13%; height: 30%; }
+    #face-L3-6 { left: 85.5%; top: 65%; width: 13%; height: 30%; }
+
+    /* Grain */
+    .grain {
+      position: fixed; inset: 0;
+      pointer-events: none;
+      z-index: 5;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+      animation: grain 0.5s steps(1) infinite;
+    }
+    @keyframes grain {
+      0%,100%{background-position:0 0} 10%{background-position:-5% -10%}
+      20%{background-position:-15% 5%} 30%{background-position:7% -25%}
+      40%{background-position:-5% 25%} 50%{background-position:-15% 10%}
+      60%{background-position:15% 0}   70%{background-position:0 15%}
+      80%{background-position:3% 35%}  90%{background-position:-10% 10%}
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="grain"></div>
+
+<div class="scene">
+
+  <!-- LA VIDÉO EST LE BACKGROUND — remplacez "galerie.mp4" par votre nom de fichier -->
+  <video id="bgVideo" preload="auto" playsinline>
+    <source src="galery_bg.mp4" type="video/mp4">
+  </video>
+
+  <div class="site-title">
+    <h1>Mémoires de Plâtre</h1>
+    <p>Portraits parlants — XIXe siècle</p>
+  </div>
+
+  <div class="hint">Cliquez sur un visage pour l'entendre</div>
+
+
+  <!-- ★ LA PAYSANNE -->
+  <div class="hotspot" id="face-L1-6"
+       data-start="30" data-end="42"
+       data-name="La Paysanne">
+    <span class="label">La Paysanne</span>
+  </div>
+
+
+  <!-- ★ LA FILLETTE AUX COUETTES -->
+  <div class="hotspot" id="face-L2-3"
+       data-start="10" data-end="16"
+       data-name="La Fillette">
+    <span class="label">La Fillette</span>
+  </div>
+
+
+  <!-- ★ LE GARÇON -->
+  <div class="hotspot" id="face-L2-6"
+       data-start="50" data-end="62"
+       data-name="Le Garçon">
+    <span class="label">Le Garçon</span>
+  </div>
+
+
+</div>
+
+<script>
+  // ── Cursor ──
+  const cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top  = e.clientY + 'px';
+  });
+
+  const video = document.getElementById('bgVideo');
+
+  // La vidéo commence en pause sur la première frame
+  video.addEventListener('loadedmetadata', () => {
+    video.currentTime = 0;
+    video.pause();
+  });
+
+  // ── Logique des hotspots ──
+  let activeEnd = null;
+  let returning = false;
+
+  // UN SEUL écouteur timeupdate pour toute la vidéo
+  video.addEventListener('timeupdate', () => {
+    if (activeEnd !== null && !returning && video.currentTime >= activeEnd) {
+      returning = true;
+      video.pause();
+      setTimeout(() => {
+        video.currentTime = 0;
+        activeEnd = null;
+        returning = false;
+      }, 800);
+    }
+  });
+
+  document.querySelectorAll('.hotspot').forEach(hotspot => {
+    const start = parseFloat(hotspot.dataset.start);
+    const end   = parseFloat(hotspot.dataset.end);
+    const hasVideo = !isNaN(start) && !isNaN(end);
+
+    hotspot.addEventListener('mouseenter', () => cursor.classList.add('hovering'));
+    hotspot.addEventListener('mouseleave', () => cursor.classList.remove('hovering'));
+
+    if (!hasVideo) return;
+
+    hotspot.addEventListener('click', () => {
+      returning = false;
+      activeEnd = end;
+      video.pause();
+      video.currentTime = start;
+      const onSeeked = () => {
+        video.removeEventListener('seeked', onSeeked);
+        video.play().catch(err => console.warn('play() bloqué:', err));
+      };
+      video.addEventListener('seeked', onSeeked);
+    });
+  });
+</script>
+
+</body>
+</html>
